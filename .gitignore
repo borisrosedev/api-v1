@@ -1,0 +1,19 @@
+# Express.js
+node_modules
+
+
+# Security
+.db.env
+.env.local
+.env.prod
+.gui.env
+
+# Systme
+.DS_Store
+.vscode
+
+# Docs
+
+
+# Logs
+access.log

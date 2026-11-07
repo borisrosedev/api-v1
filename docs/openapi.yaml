@@ -1,0 +1,250 @@
+openapi: 3.1.0
+info:
+  title: Shop API
+  summary: API for a shop
+  version: 1.0.0
+servers:
+  - url: http://localhost:{port}/{api_endpoint_prefix}
+    description: The dev API on this device
+    #name: dev
+    variables:
+      port:
+        enum:
+          - "3000"
+          - "5000"
+        default: "3000"
+      api_endpoint_prefix:
+        default: api/v1
+        description: tous les endpoints commencent par ce préfixe
+paths:
+  /users:
+    post:
+      operationId: createUser
+      description: créer un nouvel utilisateur
+      requestBody:
+        $ref: "#/components/requestBodies/CreateUser"
+      responses:
+        "201":
+          $ref: "#/components/responses/CreateUser"
+        default:
+          $ref: "#/components/responses/GeneralError"
+      parameters:
+        - name: Content-Type
+          in: header
+          schema:
+            type: string
+          description: Le type de format attendu  pour le corps de la requête
+    patch:
+      operationId: updateUser
+      description: mettre à jour certains données d'un utilisateur
+      requestBody:
+        $ref: "#/components/requestBodies/UpdateUser"
+      responses:
+        "204":
+          $ref: "#/components/responses/UpdateUser"
+      parameters:
+        - name: Content-Type
+          in: header
+          schema:
+            type: string
+          description: Le type de format attendu pour le corps de la requête
+
+  /admin/users:
+    get:
+      operationId: listUsers
+      description: récupérer la liste de tous les utilisateurs
+      responses:
+        "200":
+          $ref: "#/components/responses/GetUsers"
+        default:
+          $ref: "#/components/responses/GeneralError"
+  /admin/users/{id}:
+    get:
+      operationId: getUser
+      description: récupérer un utilisateur
+      parameters:
+        - $ref: "#/components/parameters/UserId"
+      responses:
+        "200":
+          $ref: "#/components/responses/GetUser"
+        "404":
+          $ref: "#/components/responses/NotFound"
+        default:
+          $ref: "#/components/responses/GeneralError"
+
+components:
+  # =========================== LES PARAMÈTRES ==========================
+  parameters:
+    UserId:
+      name: id
+      in: path
+      required: true
+      description: identifiant de l'utilisateur
+      schema:
+        type: string
+        format: uuid
+    # =========================== LES CORPS DE REQUÊTE ==========================
+  requestBodies:
+    CreateUser:
+      description: Données de création d'un utiisateur
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/CreateUser"
+          examples:
+            create-user:
+              $ref: "#/components/examples/create-user"
+      required: true
+    UpdateUser:
+      description: Données de mise à jour d'un utilisateurs
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/UpdateUser"
+          examples:
+            update-user:
+              $ref: "#/components/examples/update-user"
+
+  schemas:
+    # =========================== SCHÉMAS DE REQUÊTES ==========================
+    CreateUser:
+      type: object
+      properties:
+        email:
+          type: string
+        password:
+          type: string
+    UpdateUser:
+      type: object
+      properties:
+        password:
+          type: string
+        email:
+          type: string
+
+
+    # =========================== SCHÉMAS DE RÉPONSE ==========================
+    GeneralResponse:
+      type: object
+      properties:
+        code:
+          type: string
+          format: int32
+        message:
+          type: string
+    GeneralResponseWithNoBody:
+      type: "null"
+    GeneralError:
+      type: object
+      properties:
+        code:
+          type: integer
+          format: int32
+        message:
+          type: string
+    GetUsers:
+      type: object
+      properties:
+        users:
+          type: array
+          items:
+            $ref: "#/components/schemas/GetUser"
+    GetUser:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        email:
+          type: string
+          format: email
+        created_at:
+          type: string
+          format: date-time
+        updated_at:
+          type: string
+          format: date-time
+        scopes:
+          type: array
+          items:
+            $ref: "#/components/schemas/Scope"
+    Scope:
+      type: string
+      examples:
+        - "me:items"
+    # =========================== EXEMPLES ==========================
+  examples:
+    update-user:
+      summary: exemple de données de maj d'un utilisateur
+      value:
+        password: 1Mira!2b!$$
+
+    create-user:
+      summary: exemple d'objet user issu d'un POST /users/
+      value:
+        email: tom@gmail.com
+        password: 1Mira!2b!$$
+    get-user:
+      summary: exemple d'objet user issu d'un GET /users/{id}
+      value:
+        id: 109156be-c4fb-41ea-b1b4-efe1671c5836
+        email: martha@gmail.com
+        created_at: "2026-11-04T20:39:32Z"
+        updated_at: "2026-11-04T20:39:32Z"
+    get-users:
+      summary: exemple de réponse d'un GET /users
+      value:
+        users:
+          - id: 109156be-c4fb-41ea-b1b4-efe1671c5836
+            email: marc@gmail.com
+            created_at: "2026-11-04T20:39:32Z"
+            updated_at: "2026-11-04T20:39:32Z"
+    # =========================== LES RÉPONSES ==========================
+  responses:
+    NotFound:
+      description: Entité introuvable
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/GeneralError"
+
+    GeneralError:
+      description: Erreur générale
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/GeneralError"
+
+    GetUser:
+      description: Un utilisateur
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/GetUser"
+          examples:
+            get-user:
+              $ref: "#/components/examples/get-user"
+
+    GetUsers:
+      description: La liste des utilisateurs
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/GetUsers"
+          examples:
+            get-users:
+              $ref: "#/components/examples/get-users"
+
+    CreateUser:
+      description: Code et Message de création d'un utilisateur
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/GeneralResponse"
+
+    UpdateUser:
+      description: Réponse de mise à jour d'un utilisateur (Aucun corps)
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/GeneralResponseWithNoBody"
